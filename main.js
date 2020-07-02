@@ -1,6 +1,6 @@
 import { version } from './package.json';
 import CQWebsocket from 'cq-websocket';
-import config from './modules/config';
+import config from './config';
 import saucenao from './modules/saucenao';
 import { snDB } from './modules/saucenao';
 import whatanime from './modules/whatanime';

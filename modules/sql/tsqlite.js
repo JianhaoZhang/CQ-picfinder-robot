@@ -2,6 +2,7 @@ import config from '../config';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import Path from 'path';
+import async from 'async';
 
 const sqlPath = Path.resolve(__dirname, '../../data/tdb.sqlite');
 
@@ -62,17 +63,17 @@ class TSqlite {
      */
     addTuple(imgurl, tweeturl, username, likes) {
         (async () => {
-            this.sql = await open({
+            var sql = await open({
                 filename: sqlPath,
                 driver: sqlite3.Database,
             });
-            await this.sql.run('REPLACE INTO `feed` (`imgurl`, `tweeturl`, `username`, `likes`, `t`) VALUES (?, ?, ?, ?, ?)', [imgurl, tweeturl, username, likes, getDateSec()]);
-            return true;
+            await sql.run('REPLACE INTO `feed` (`imgurl`, `tweeturl`, `username`, `likes`, `t`) VALUES (?, ?, ?, ?, ?)', [imgurl, tweeturl, username, likes, getDateSec()]);
         })().catch(e => {
             console.error(`${new Date().toLocaleString()} [error] SQLite`);
             console.error(e);
+            return e;
         });
-        return false;
+        return;
     }
 
     addUser(uid) {
