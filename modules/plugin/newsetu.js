@@ -26,8 +26,13 @@ function rfc1738encode (str) {
     .replace(/\*/g, '%2A')
 }
 
+function getDateSec() {
+    return Math.floor(Date.now() / 1000);
+}
 
 function processSetu(context, replyFunc, logger, bot) {
+	// console.log(context.message);
+	// console.log(context.user_id);
 	const newSetuRegExec = newsetuReg.exec(context.message);
 	const db = new TSqlite();
 	const limit = {
@@ -41,6 +46,8 @@ function processSetu(context, replyFunc, logger, bot) {
 		consumer_secret: setting.twitter_consumer_secret
 	});
 
+	// console.log(newSetuRegExec);
+
 	if (newSetuRegExec){
 		const regGroup = newSetuRegExec.groups || {};
 		const update = regGroup.update;
@@ -48,25 +55,28 @@ function processSetu(context, replyFunc, logger, bot) {
 		const quality = regGroup.quality;
 		const subscribe = regGroup.user;
 
-		console.log(regGroup)
+		// console.log(regGroup)
 		console.log(update)
 		console.log(random)
 		console.log(quality)
 		console.log(subscribe)
 
 		if (context.group_id) {
-                limit.cd = setting.whiteCd;
-                delTime = setting.whiteDeleteTime;
+            limit.cd = setting.whiteCd;
+            delTime = setting.whiteDeleteTime;
         } else {
             limit.cd = 0; //私聊无cd
         }
 
-        if (subscribe){
+        if (subscribe && context.user_id == setting.admin){
         	db.addUser(subscribe);
+        	replyFunc(context, "已添加: " + subscribe, true);
+        	// console.log(context);
         }
 
+        var i = 0;
 
-        if (update){
+        if (update && context.user_id == setting.admin){
 
         	(async () => {
 
@@ -74,7 +84,6 @@ function processSetu(context, replyFunc, logger, bot) {
         		const app = new Twitter({
 					bearer_token: security.access_token
 				});
-				console.log(security.access_token)
 
 	            let sql = await open({
 	                filename: sqlPath,
@@ -87,7 +96,7 @@ function processSetu(context, replyFunc, logger, bot) {
 	                    throw err;
 	                }
 	                console.log("Updating: " + row.uid);
-	                const response = get_user_timeline(app, row.uid, 10)
+	                const response = get_user_timeline(app, row.uid, setting.update_count)
 	                	.then(function(results){
 	                		//console.log(results);
 	                		results.forEach(element => {
@@ -104,6 +113,7 @@ function processSetu(context, replyFunc, logger, bot) {
 	                							console.log(user);
 	                							console.log(likes);
 	                							db.addTuple(imgurl, tweeturl, user, likes);
+	                							i += 1;
 	                						}
 	                					}else{
 	                						if (element.entities.media && element.favorite_count >= setting.minlikes){
@@ -116,6 +126,7 @@ function processSetu(context, replyFunc, logger, bot) {
 	                							console.log(user);
 	                							console.log(likes);
 	                							db.addTuple(imgurl, tweeturl, user, likes);
+	                							i += 1;
 	                						}
 	                					}
 	                				}
@@ -132,6 +143,57 @@ function processSetu(context, replyFunc, logger, bot) {
 	            console.error(`${new Date().toLocaleString()} [error] SQLite`);
 	            console.error(e);
 	        });
+        }
+
+        if (random) {
+        	(async () => {
+	        	let sql = await open({
+					filename: sqlPath,
+					driver: sqlite3.Database,
+				});
+				let query = 'SELECT * FROM feed ORDER BY RANDOM() LIMIT 1;';
+	        	sql.each(query, (err, row) => {
+	        		if (err){
+		                throw err;
+		            }
+		            console.log(row);
+		            getBase64(row.imgurl)
+		            .then(base64 => {
+		            	replyFunc(context, CQcode.img64(base64));
+		            })
+		            .catch(e => {
+		            	console.error(e);
+		            });
+		        });
+        	})().catch(e => {
+				console.error(e);
+        	});
+        }
+
+        if (quality) {
+        	(async () => {
+	        	let sql = await open({
+					filename: sqlPath,
+					driver: sqlite3.Database,
+				});
+				let offset = getDateSec() - 86400;
+				let query = `SELECT * FROM feed ORDER BY RANDOM() LIMIT 1 WHERE t > ${offset};`;
+	        	sql.each(query, (err, row) => {
+	        		if (err){
+		                throw err;
+		            }
+		            console.log(row);
+		            getBase64(row.imgurl)
+		            .then(base64 => {
+		            	replyFunc(context, CQcode.img64(base64));
+		            })
+		            .catch(e => {
+		            	console.error(e);
+		            });
+		        });
+        	})().catch(e => {
+				console.error(e);
+        	});
         }
 	}
 	return false;

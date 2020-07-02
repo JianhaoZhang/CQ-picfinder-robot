@@ -191,6 +191,22 @@ setInterval(() => {
     }
 }, 60 * 60 * 1000);
 
+//自动更新推特图库
+setInterval(() => {
+    if (bot.isReady()) {
+        var context = {
+            message: "猫猫更新推特",
+            user_id: setting.admin
+        }
+        processSetu(context, replyMsg, logger, bot);
+        bot('send_private_msg', {
+            user_id: context.user_id,
+            message: "图库已更新",
+        });
+    }
+}, 24 * 60 * 60 * 1000);
+
+
 //通用处理
 function commonHandle(e, context) {
     //黑名单检测
