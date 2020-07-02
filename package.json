@@ -57,6 +57,7 @@
     "socks-proxy-agent": "^5.0.0",
     "sqlite": "^4.0.11",
     "sqlite3": "^4.2.0",
-    "tencentcloud-sdk-nodejs": "3.0.118"
+    "tencentcloud-sdk-nodejs": "3.0.118",
+    "twitter-lite": "^0.14.0"
   }
 }

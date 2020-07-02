@@ -10,6 +10,7 @@ import PFCache from './modules/cache';
 import Logger from './modules/Logger';
 import RandomSeed from 'random-seed';
 import sendSetu from './modules/plugin/setu';
+import processSetu from './modules/plugin/newsetu';
 import ocr from './modules/plugin/ocr';
 import Akhr from './modules/plugin/akhr';
 import _ from 'lodash';
@@ -217,6 +218,11 @@ function commonHandle(e, context) {
     //setu
     if (setting.setu.enable) {
         if (sendSetu(context, replyMsg, logger, bot)) return true;
+    }
+
+    //twitter setu
+    if (setting.newsetu.enable){
+        if (processSetu(context, replyMsg, logger, bot)) return true;
     }
 
     //reminder
