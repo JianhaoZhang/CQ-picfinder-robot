@@ -99,39 +99,44 @@ function processSetu(context, replyFunc, logger, bot) {
 	                const response = get_user_timeline(app, row.uid, setting.update_count)
 	                	.then(function(results){
 	                		//console.log(results);
-	                		results.forEach(element => {
-	                			if (element){
-	                				if (element){
-	                					if(element.retweeted_status && element.retweeted_status.favorite_count >= setting.minlikes){
-	                						if (element.retweeted_status.entities.media){
-	                							let imgurl = element.retweeted_status.entities.media[0].media_url;
-	                							let tweeturl = element.retweeted_status.entities.media[0].url;
-	                							let user = element.retweeted_status.user.name;
-	                							let likes = element.retweeted_status.favorite_count;
-	                							console.log(imgurl);
-	                							console.log(tweeturl);
-	                							console.log(user);
-	                							console.log(likes);
-	                							db.addTuple(imgurl, tweeturl, user, likes);
-	                							i += 1;
-	                						}
-	                					}else{
-	                						if (element.entities.media && element.favorite_count >= setting.minlikes){
-	                							let imgurl = element.entities.media[0].media_url;
-	                							let tweeturl = element.entities.media[0].url;
-	                							let user = element.user.name;
-	                							let likes = element.favorite_count;
-	                							console.log(imgurl);
-	                							console.log(tweeturl);
-	                							console.log(user);
-	                							console.log(likes);
-	                							db.addTuple(imgurl, tweeturl, user, likes);
-	                							i += 1;
-	                						}
-	                					}
-	                				}
-	                			}     			
-	                		})
+	                		var db = new sqlite3.Database(sqlPath);
+	                		db.serialize(function() {
+		                		results.forEach(element => {
+		                			if (element){
+		                				if (element){
+		                					if(element.retweeted_status && element.retweeted_status.favorite_count >= setting.minlikes){
+		                						if (element.retweeted_status.entities.media){
+		                							let imgurl = element.retweeted_status.entities.media[0].media_url;
+		                							let tweeturl = element.retweeted_status.entities.media[0].url;
+		                							let user = element.retweeted_status.user.name;
+		                							let likes = element.retweeted_status.favorite_count;
+		                							console.log(imgurl);
+		                							console.log(tweeturl);
+		                							console.log(user);
+		                							console.log(likes);
+		                							if (!imgurl.includes("ext_tw_video_thumb")){
+		                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
+		                							}
+		                						}
+		                					}else{
+		                						if (element.entities.media && element.favorite_count >= setting.minlikes){
+		                							let imgurl = element.entities.media[0].media_url;
+		                							let tweeturl = element.entities.media[0].url;
+		                							let user = element.user.name;
+		                							let likes = element.favorite_count;
+		                							console.log(imgurl);
+		                							console.log(tweeturl);
+		                							console.log(user);
+		                							console.log(likes);
+		                							if (!imgurl.includes("ext_tw_video_thumb")){
+		                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
+		                							}
+		                						}
+		                					}
+		                				}
+		                			}     			
+		                		})		
+	                		});
 	                	})
 	                	.catch(e => {
 	                		console.error(e);
@@ -159,6 +164,7 @@ function processSetu(context, replyFunc, logger, bot) {
 		            console.log(row);
 		            getBase64(row.imgurl)
 		            .then(base64 => {
+		            	// console.log(base64);
 		            	replyFunc(context, CQcode.img64(base64));
 		            })
 		            .catch(e => {
@@ -185,6 +191,7 @@ function processSetu(context, replyFunc, logger, bot) {
 		            console.log(row);
 		            getBase64(row.imgurl)
 		            .then(base64 => {
+		            	// console.log(base64);
 		            	replyFunc(context, CQcode.img64(base64));
 		            })
 		            .catch(e => {
@@ -197,6 +204,25 @@ function processSetu(context, replyFunc, logger, bot) {
         }
 	}
 	return false;
+}
+
+function insert_w_callback(db, imgurl, tweeturl, user, likes, tries){
+	db.run('REPLACE INTO `feed` (`imgurl`, `tweeturl`, `username`, `likes`, `t`) VALUES (?, ?, ?, ?, ?)',
+	[imgurl, tweeturl, user, likes, getDateSec()],
+	function(e) {
+		if (e){
+			if (tries <= 0){
+				console.log("Failed with max tries")
+			}else{
+				setTimeout(function (){
+					console.log(`${tweeturl} tried: ${setting.max_tries - tries}`)
+					insert_w_callback(db, imgurl, tweeturl, user, likes, tries - 1);
+				}, Math.random() * 10000);
+			}	
+		}else{
+			console.log(`${tweeturl} suceeded at ${setting.max_tries - tries}`)
+		}
+	});
 }
 
 function getBase64(url) {
