@@ -229,11 +229,11 @@ var timer = setInterval(() => {
 				console.log("sending to: " + gids[i] + " at " +j);
 				var context = { 
 					group_id: gids[i],
-					message: '猫猫随机推特',
+					message: '猫猫品质推特',
 					user_id: setting.admin,
 					message_type: 'group',
 				 	post_type: 'message',
-					raw_message: '猫猫随机推特',
+					raw_message: '猫猫品质推特',
 					self_id: 619473491,
 				}
 				processSetu(context, replyMsg, logger, bot);
@@ -292,11 +292,11 @@ function commonHandle(e, context) {
 								console.log("sending to: " + gids[i] + " at " + j);
 								var context = { 
 									group_id: gids[i],
-									message: '猫猫随机推特',
+									message: '猫猫品质推特',
 									user_id: setting.admin,
 									message_type: 'group',
 								 	post_type: 'message',
-									raw_message: '猫猫随机推特',
+									raw_message: '猫猫品质推特',
 									self_id: 619473491,
 								}
 								processSetu(context, replyMsg, logger, bot);

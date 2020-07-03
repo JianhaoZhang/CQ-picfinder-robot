@@ -218,8 +218,7 @@ function processSetu(context, replyFunc, logger, bot) {
 					filename: sqlPath,
 					driver: sqlite3.Database,
 				});
-				let offset = getDateSec() - 86400;
-				let query = `SELECT * FROM feed ORDER BY RANDOM() LIMIT 1 WHERE t > ${offset};`;
+				let query = `SELECT * FROM feed ORDER BY RANDOM() LIMIT ${count} WHERE likes > ${setting.like_cap};`;
 	        	sql.each(query, (err, row) => {
 	        		if (err){
 		                throw err;
