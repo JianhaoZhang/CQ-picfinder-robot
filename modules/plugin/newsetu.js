@@ -16,6 +16,12 @@ const replys = config.picfinder.replys;
 const newsetuReg = new NamedRegExp(config.picfinder.regs.newsetu);
 const sqlPath = Path.resolve(__dirname, '../../data/tdb.sqlite');
 
+var localStorage;
+
+if (typeof localStorage === "undefined" || localStorage === null) {
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./groupsubscription');
+}
 
 function rfc1738encode (str) {
   return encodeURIComponent(str)
@@ -31,7 +37,7 @@ function getDateSec() {
 }
 
 function processSetu(context, replyFunc, logger, bot) {
-	// console.log(context.message);
+	// console.log(context);
 	// console.log(context.user_id);
 	const newSetuRegExec = newsetuReg.exec(context.message);
 	const db = new TSqlite();
@@ -54,12 +60,42 @@ function processSetu(context, replyFunc, logger, bot) {
 		const random = regGroup.random;
 		const quality = regGroup.quality;
 		const subscribe = regGroup.user;
+		const groupsubscribe = regGroup.subscribe;
+		const quantity = regGroup.quantity;
 
 		// console.log(regGroup)
-		console.log(update)
-		console.log(random)
-		console.log(quality)
-		console.log(subscribe)
+		console.log(update);
+		console.log(random);
+		console.log(quality);
+		console.log(subscribe);
+		console.log(groupsubscribe);
+
+		var count = 1
+
+		if (quantity){
+			var count = Number(quantity.replace('x', ''));
+			if (!Number.isInteger(count)){
+				count = 1;
+			}else{
+				count = Number(count);
+				if (count <= 0){
+					count = 1;
+				}
+				if (count > 5){
+					if (context.sender){
+						if (setting.admin != context.sender.user_id){
+							count = 5;
+						}
+					}else{
+						if (setting.admin != context.user_id){
+							count = 5;
+						}
+					}
+					
+				}
+			}
+		}
+		console.log(count);
 
 		if (context.group_id) {
             limit.cd = setting.whiteCd;
@@ -156,7 +192,7 @@ function processSetu(context, replyFunc, logger, bot) {
 					filename: sqlPath,
 					driver: sqlite3.Database,
 				});
-				let query = 'SELECT * FROM feed ORDER BY RANDOM() LIMIT 1;';
+				let query = `SELECT * FROM feed ORDER BY RANDOM() LIMIT ${count};`;
 	        	sql.each(query, (err, row) => {
 	        		if (err){
 		                throw err;
@@ -201,6 +237,12 @@ function processSetu(context, replyFunc, logger, bot) {
         	})().catch(e => {
 				console.error(e);
         	});
+        }
+
+        if (groupsubscribe && context.user_id == setting.admin) {
+        	localStorage.setItem(context.group_id, count);
+        	replyFunc(context,`已为本群订阅: ${count}/时`);
+        	return 'restart';
         }
 	}
 	return false;
