@@ -218,7 +218,7 @@ function processSetu(context, replyFunc, logger, bot) {
 					filename: sqlPath,
 					driver: sqlite3.Database,
 				});
-				let query = `SELECT * FROM feed ORDER BY RANDOM() LIMIT ${count} WHERE likes > ${setting.like_cap};`;
+				let query = `SELECT * FROM feed WHERE likes > ${setting.like_cap} ORDER BY RANDOM() LIMIT ${count} ;`;
 	        	sql.each(query, (err, row) => {
 	        		if (err){
 		                throw err;
