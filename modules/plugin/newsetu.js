@@ -131,53 +131,55 @@ function processSetu(context, replyFunc, logger, bot) {
 	                if (err){
 	                    throw err;
 	                }
-	                console.log("Updating: " + row.uid);
-	                const response = get_user_timeline(app, row.uid, setting.update_count)
-	                	.then(function(results){
-	                		//console.log(results);
-	                		var db = new sqlite3.Database(sqlPath);
-	                		db.serialize(function() {
-		                		results.forEach(element => {
-		                			if (element){
-		                				if (element){
-		                					if(element.retweeted_status && element.retweeted_status.favorite_count >= setting.minlikes){
-		                						if (element.retweeted_status.entities.media){
-		                							let imgurl = element.retweeted_status.entities.media[0].media_url;
-		                							let tweeturl = element.retweeted_status.entities.media[0].url;
-		                							let user = element.retweeted_status.user.name;
-		                							let likes = element.retweeted_status.favorite_count;
-		                							console.log(imgurl);
-		                							console.log(tweeturl);
-		                							console.log(user);
-		                							console.log(likes);
-		                							if (!imgurl.includes("ext_tw_video_thumb")){
-		                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
-		                							}
-		                						}
-		                					}else{
-		                						if (element.entities.media && element.favorite_count >= setting.minlikes){
-		                							let imgurl = element.entities.media[0].media_url;
-		                							let tweeturl = element.entities.media[0].url;
-		                							let user = element.user.name;
-		                							let likes = element.favorite_count;
-		                							console.log(imgurl);
-		                							console.log(tweeturl);
-		                							console.log(user);
-		                							console.log(likes);
-		                							if (!imgurl.includes("ext_tw_video_thumb")){
-		                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
-		                							}
-		                						}
-		                					}
-		                				}
-		                			}     			
-		                		})		
-	                		});
-	                	})
-	                	.catch(e => {
-	                		console.error(e);
-	                		console.log("from: " + row.uid);
-	                	});
+	                setTimeout(() => {
+		                console.log("Updating: " + row.uid);
+		                const response = get_user_timeline(app, row.uid, setting.update_count)
+		                	.then(function(results){
+		                		//console.log(results);
+		                		var db = new sqlite3.Database(sqlPath);
+		                		db.serialize(function() {
+			                		results.forEach(element => {
+			                			if (element){
+			                				if (element){
+			                					if(element.retweeted_status && element.retweeted_status.favorite_count >= setting.minlikes){
+			                						if (element.retweeted_status.entities.media){
+			                							let imgurl = element.retweeted_status.entities.media[0].media_url;
+			                							let tweeturl = element.retweeted_status.entities.media[0].url;
+			                							let user = element.retweeted_status.user.name;
+			                							let likes = element.retweeted_status.favorite_count;
+			                							console.log(imgurl);
+			                							console.log(tweeturl);
+			                							console.log(user);
+			                							console.log(likes);
+			                							if (!imgurl.includes("ext_tw_video_thumb")){
+			                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
+			                							}
+			                						}
+			                					}else{
+			                						if (element.entities.media && element.favorite_count >= setting.minlikes){
+			                							let imgurl = element.entities.media[0].media_url;
+			                							let tweeturl = element.entities.media[0].url;
+			                							let user = element.user.name;
+			                							let likes = element.favorite_count;
+			                							console.log(imgurl);
+			                							console.log(tweeturl);
+			                							console.log(user);
+			                							console.log(likes);
+			                							if (!imgurl.includes("ext_tw_video_thumb")){
+			                								insert_w_callback(db, imgurl, tweeturl, user, likes, setting.max_tries);
+			                							}
+			                						}
+			                					}
+			                				}
+			                			}     			
+			                		})		
+		                		});
+		                	})
+		                	.catch(e => {
+		                		console.error(e);
+		                		console.log("from: " + row.uid);
+		                	});
+		            }, setting.timeout * 1000);
 	            });
             	return true;
 	        })().catch(e => {
